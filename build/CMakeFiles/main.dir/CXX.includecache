@@ -1,0 +1,58 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/stanislav/Рабочий стол/vector/include/ILogger.h
+RC.h
+/home/stanislav/Рабочий стол/vector/include/RC.h
+
+/home/stanislav/Рабочий стол/vector/include/IVector.h
+cstddef
+-
+functional
+-
+RC.h
+/home/stanislav/Рабочий стол/vector/include/RC.h
+ILogger.h
+/home/stanislav/Рабочий стол/vector/include/ILogger.h
+
+/home/stanislav/Рабочий стол/vector/include/RC.h
+
+/home/stanislav/Рабочий стол/vector/src/Logger.cpp
+Logger.h
+/home/stanislav/Рабочий стол/vector/src/Logger.h
+
+/home/stanislav/Рабочий стол/vector/src/Logger.h
+cstdio
+-
+../include/ILogger.h
+/home/stanislav/Рабочий стол/vector/include/ILogger.h
+
+/home/stanislav/Рабочий стол/vector/src/Vector.cpp
+cstdio
+-
+string.h
+-
+cmath
+-
+stdint.h
+-
+limits
+-
+Vector.h
+/home/stanislav/Рабочий стол/vector/src/Vector.h
+
+/home/stanislav/Рабочий стол/vector/src/Vector.h
+../include/IVector.h
+/home/stanislav/Рабочий стол/vector/include/IVector.h
+
+/home/stanislav/Рабочий стол/vector/test/Source.cpp
+../include/IVector.h
+/home/stanislav/Рабочий стол/vector/include/IVector.h
+iostream
+-
+

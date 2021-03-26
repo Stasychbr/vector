@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/stanislav/Рабочий стол/vector/build",
+  "command": "/usr/bin/g++-9    -g   -o CMakeFiles/main.dir/test/Source.cpp.o -c \"/home/stanislav/Рабочий стол/vector/test/Source.cpp\"",
+  "file": "/home/stanislav/Рабочий стол/vector/test/Source.cpp"
+},
+{
+  "directory": "/home/stanislav/Рабочий стол/vector/build",
+  "command": "/usr/bin/g++-9    -g   -o CMakeFiles/main.dir/src/Logger.cpp.o -c \"/home/stanislav/Рабочий стол/vector/src/Logger.cpp\"",
+  "file": "/home/stanislav/Рабочий стол/vector/src/Logger.cpp"
+},
+{
+  "directory": "/home/stanislav/Рабочий стол/vector/build",
+  "command": "/usr/bin/g++-9    -g   -o CMakeFiles/main.dir/src/Vector.cpp.o -c \"/home/stanislav/Рабочий стол/vector/src/Vector.cpp\"",
+  "file": "/home/stanislav/Рабочий стол/vector/src/Vector.cpp"
+}
+]

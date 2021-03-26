@@ -1,0 +1,3 @@
+/home/stanislav/Рабочий стол/vector/build/CMakeFiles/rebuild_cache.dir
+/home/stanislav/Рабочий стол/vector/build/CMakeFiles/edit_cache.dir
+/home/stanislav/Рабочий стол/vector/build/CMakeFiles/main.dir
