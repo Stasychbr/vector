@@ -64,6 +64,12 @@ RC Vector::setCord(size_t index, double val) {
         }
         return RC::INDEX_OUT_OF_BOUND;
     }
+    if (isnan(val) || isinf(val)) {
+        if (_logger) {
+            _logger->warning(RC::INVALID_ARGUMENT);
+        }
+        return RC::INVALID_ARGUMENT;
+    }
 #endif
     *(getDataArray() + index) = val;
     return RC::SUCCESS;
@@ -71,6 +77,7 @@ RC Vector::setCord(size_t index, double val) {
 
 RC Vector::scale(double multiplier) {
 #ifndef FAST_MATH
+    double buf;
     if (isnan(multiplier) || isinf(multiplier)) {
         if (_logger) {
             _logger->warning(RC::INVALID_ARGUMENT);
@@ -79,8 +86,17 @@ RC Vector::scale(double multiplier) {
     }
 #endif
     double* data = (double*)getData();
+    
     for (size_t i = 0; i < _dim; i++) {
+#ifdef FAST_MATH
         data[i] *= multiplier;
+#else
+        buf = data[i] * multiplier;
+        if (isinf(buf)) {
+            return RC::INVALID_ARGUMENT;
+        }
+        data[i] = buf;
+#endif
     }
     return RC::SUCCESS;
 }
@@ -123,97 +139,6 @@ RC Vector::dec(IVector const* const& op) {
     return RC::SUCCESS;
 }
 
-Vector* Vector::add(IVector const* const& op1, IVector const* const& op2) {
-#ifndef FAST_MATH
-    if (op1->getDim() != op2->getDim()) {
-        if (_logger) {
-            _logger->warning(RC::MISMATCHING_DIMENSIONS);
-        }
-        return nullptr;
-    }
-#endif
-    Vector* res = createVector(op1->getDim(), op1->getData());
-    if (!res) {
-        return nullptr;
-    }
-    res->inc(op2);
-    return res;
-}
-
-Vector* Vector::sub(IVector const* const& op1, IVector const* const& op2) {
-#ifndef FAST_MATH
-    if (op1->getDim() != op2->getDim()) {
-        if (_logger) {
-            _logger->warning(RC::MISMATCHING_DIMENSIONS);
-        }
-        return nullptr;
-    }
-#endif
-    size_t dim = op1->getDim();
-    Vector* res = createVector(dim, op1->getData());
-    if (!res) {
-        return nullptr;
-    }
-    double* data = (double*)res->getData();
-    const double* opData = op2->getData();
-    for (size_t i = 0; i < dim; i++) {
-        data[i] -= opData[i];
-    }
-    return res;
-}
-
-double Vector::dot(IVector const* const& op1, IVector const* const& op2) {
-#ifndef FAST_MATH
-    if (op1->getDim() != op2->getDim()) {
-        if (_logger) {
-            _logger->warning(RC::MISMATCHING_DIMENSIONS);
-        }
-        return NAN;
-    }
-#endif
-    size_t dim = op1->getDim();
-    double res = 0;
-    const double* data1 = op1->getData();
-    const double* data2 = op2->getData();
-    for (size_t i = 0; i < dim; i++) {
-        res += data1[i] * data2[i];
-    }
-#ifndef FAST_MATH
-    if (isinf(res)) {
-        if (_logger) {
-            _logger->warning(RC::INFINITY_OVERFLOW);
-        }
-        return NAN;
-    }
-#endif
-    return res;
-}
-
-bool Vector::equals(IVector const* const& op1, IVector const* const& op2, NORM n, double tol) {
-    IVector* diff = op1->clone();
-#ifndef FAST_MATH
-    if (!diff) {
-        if (_logger) {
-            _logger->warning(RC::ALLOCATION_ERROR);
-        }
-        return false;
-    }
-#endif
-    diff->dec(op2);
-    double diffNorm = diff->norm(n);
-#ifndef FAST_MATH
-    if (isnan(diffNorm)) {
-        delete diff;
-        if (_logger) {
-            _logger->warning(RC::NOT_NUMBER);
-        }
-        return false;
-    }
-#endif
-    delete diff;
-    return diffNorm < tol;
-}
-
 double Vector::norm(NORM n) const {
     double res = 0;
     const double* data = getData();
@@ -230,9 +155,9 @@ double Vector::norm(NORM n) const {
         res = sqrt(res);
         break;
     case NORM::CHEBYSHEV:
-        res = std::numeric_limits<double>::lowest();
+        res = 0;
         for (size_t i = 0; i < _dim; i++) {
-            res = fmax(res, data[i]);
+            res = fmax(res, fabs(data[i]));
         }
         break;
     default:
@@ -319,25 +244,101 @@ RC IVector::setLogger(ILogger* const logger) {
 }
 
 IVector* IVector::add(IVector const* const& op1, IVector const* const& op2) {
-    // extra call for logger
-    return (IVector*)Vector::add(op1, op2);
+#ifndef FAST_MATH
+    if (op1->getDim() != op2->getDim()) {
+        // we need to update the interface to use logger here 
+        /* if (_logger) {
+            _logger->warning(RC::MISMATCHING_DIMENSIONS);
+        } */
+        return nullptr;
+    }
+#endif
+    IVector* res = createVector(op1->getDim(), op1->getData());
+    if (!res) {
+        return nullptr;
+    }
+    res->inc(op2);
+    return res;
 }
 
 IVector* IVector::sub(IVector const* const& op1, IVector const* const& op2) {
-    // extra call for logger
-    return (IVector*)Vector::sub(op1, op2);
+#ifndef FAST_MATH
+    if (op1->getDim() != op2->getDim()) {
+        // we need to update the interface to use logger here 
+        /* if (_logger) {
+            _logger->warning(RC::MISMATCHING_DIMENSIONS);
+        } */
+        return nullptr;
+    }
+#endif
+    size_t dim = op1->getDim();
+    IVector* res = createVector(dim, op1->getData());
+    if (!res) {
+        return nullptr;
+    }
+    double* data = (double*)res->getData();
+    const double* opData = op2->getData();
+    for (size_t i = 0; i < dim; i++) {
+        data[i] -= opData[i];
+    }
+    return res;
+
 }
 
 double IVector::dot(IVector const* const& op1, IVector const* const& op2) {
-    // extra call for logger
-    return Vector::dot(op1, op2);
+#ifndef FAST_MATH
+    if (op1->getDim() != op2->getDim()) {
+        // we need to update the interface to use logger here 
+        /* if (_logger) {
+            _logger->warning(RC::MISMATCHING_DIMENSIONS);
+        } */
+        return NAN;
+    }
+#endif
+    size_t dim = op1->getDim();
+    double res = 0;
+    const double* data1 = op1->getData();
+    const double* data2 = op2->getData();
+    for (size_t i = 0; i < dim; i++) {
+        res += data1[i] * data2[i];
+    }
+#ifndef FAST_MATH
+    if (isinf(res)) {
+        // we need to update the interface to use logger here 
+        /* if (_logger) {
+            _logger->warning(RC::INFINITY_OVERFLOW);
+        } */
+        return NAN;
+    }
+#endif
+    return res;
 }
 
 bool IVector::equals(IVector const* const& op1, IVector const* const& op2, NORM n, double tol) {
-    // extra call for logger
-    return Vector::equals(op1, op2, n, tol);
+    IVector* diff = op1->clone();
+#ifndef FAST_MATH
+    if (!diff) {
+        // we need to update the interface to use logger here 
+        /* if (_logger) {
+            _logger->warning(RC::ALLOCATION_ERROR);
+        } */
+        return false;
+    }
+#endif
+    diff->dec(op2);
+    double diffNorm = diff->norm(n);
+#ifndef FAST_MATH
+    if (isnan(diffNorm)) {
+        delete diff;
+        // we need to update the interface to use logger here 
+        /* if (_logger) {
+            _logger->warning(RC::NOT_NUMBER);
+        } */
+        return false;
+    }
+#endif
+    delete diff;
+    return diffNorm < tol;
 }
 
-IVector::~IVector() {
-
-}
+IVector::~IVector() = default;

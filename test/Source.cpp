@@ -1,5 +1,6 @@
-#include "../include/IVector.h"
 #include <iostream>
+#include <limits>
+#include "../include/IVector.h"
 
 using namespace std;
 
@@ -51,10 +52,16 @@ int main() {
     vec2->foreach(print);
 
     cout << endl;
-    cout << "\nTest is finished" << endl;
-
     delete vec1;
     delete vec2;
+
+    data1[0] = numeric_limits<double>::infinity();
+    cout << "Trying to construct a vector using array { " << data1[0] << " , " << data1[1] << " , " << data1[2] << " }" << endl;
+    vec1 = IVector::createVector(3, data1);
+
+    cout << "\nIVector::createVector() returned " << vec1 << endl;
+    cout << "\nTest is finished" << endl;
+
     delete logger;
     return 0;
 }
